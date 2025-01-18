@@ -4,6 +4,8 @@
 #define W_WIDTH 1200
 #define W_HEIGHT 600
 
+int score = 0;
+
 struct Ball
 {
     float x, y;
@@ -129,14 +131,15 @@ int main () {
         updateComp(ball.y);
 
 // collision checking
-        if(CheckCollisionCircleRec(Vector2(ball.x, ball.y), ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
+        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
         {
-            ball.speed_x  *= -1;
+            ball.speed_x *= -1;
+            score +=1;
         }
 
-        if(CheckCollisionCircleRec(Vector2(ball.x, ball.y), ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
         {
-            ball.speed_x  *= -1;
+            ball.speed_x *= -1;
         }
 
         ClearBackground(BLACK);
@@ -146,6 +149,7 @@ int main () {
         drawCompPaddle();
         drawPaddle();
         
+        DrawText(TextFormat("Score: %i", score), 10, 10, 20, LIGHTGRAY);
         EndDrawing();
     }
 
