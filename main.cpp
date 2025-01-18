@@ -54,7 +54,7 @@ struct Paddle
              y = GetScreenHeight() -  height - 5;
         }
     }
-} player;
+} player, computer;
 
 void drawPaddle()
 {
@@ -74,10 +74,6 @@ void updatePlayer()
     player.LimitMove();
 }
 
-struct Computer:public Paddle
-{
-    
-} computer;
 
 void drawCompPaddle()
 {
