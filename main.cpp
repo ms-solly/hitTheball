@@ -1,4 +1,3 @@
-// nice job go ahead and and implement more features 
 
 #include <stdio.h>
 #include <raylib.h>
@@ -162,19 +161,19 @@ void updateComp(int ball_y)
     {
         computer.y = computer.y + computer.speed;
     }
-
-    computer.LimitMove();
+computer.LimitMove();
 }
 void updateMouth()
 {
-    if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) ||
-        CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+    // Check for collisions with paddles
+    if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) 
+        && CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
     {
-        Vmouth(); 
+        Vmouth(); // Draw the V-shaped mouth
     }
     else
     {
-        initialMouth(); 
+        initialMouth(); // Draw the initial rectangular mouth
     }
 }
 
