@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <raylib.h>
+#include <math.h>
 
 #define W_WIDTH 1200
 #define W_HEIGHT 600
@@ -12,29 +13,6 @@ struct Ball
     int speed_x, speed_y;
     int radius;
 } ball;
-
-void drawBall()
-{
-    DrawCircle(ball.x, ball.y, ball.radius,WHITE);
-
-}
-
-void updateBall()
-{
-    ball.x += ball.speed_x;
-    ball.y += ball.speed_y;
-
-    if ( ball.y + ball.radius >= GetScreenHeight() || ball.y - ball.radius <= 0)
-    {
-        ball.speed_y *= -1;
-    }
-
-    if ( ball.x + ball.radius >= GetScreenWidth() || ball.x - ball.radius <= 0)
-    {
-        ball.speed_x *= -1;
-    }
-
-}
 
 struct Paddle
 {
@@ -55,6 +33,98 @@ struct Paddle
         }
     }
 } player, computer;
+
+void Vmouth();
+void initialMouth();
+void updateMouth();
+
+void drawBall()
+{
+    // DrawCircle(ball.x, ball.y, ball.radius,WHITE);
+    DrawCircle(ball.x, ball.y, ball.radius,WHITE);
+
+    
+    float amplitude = 5; // Amplitude of the wave (height of the wave)
+    float frequency = 8; // Frequency of the wave (tightness of the wave)
+
+    for (float y = -ball.radius; y <= ball.radius; y += 1.0f) {
+        for (float x = -sqrtf(ball.radius * ball.radius - y * y); x <= sqrtf(ball.radius * ball.radius - y * y); x += 1.0f) {
+            // Calculate the wave's displacement at this x-coordinate
+            float waveY = amplitude * sinf(x / frequency);
+
+            if (y > waveY) { // Below the wave
+                DrawPixel(ball.x + x, ball.y + y, DARKGRAY);
+            }
+        }
+    }
+
+
+    for (float x = -ball.radius; x <= ball.radius; x += 1.0f) {
+        // Calculate the wave's displacement along the y-axis
+        float waveY = amplitude * sinf(x / frequency);
+
+        // Ensure the wave stays within the circle's boundary
+        float maxY = sqrtf(ball.radius * ball.radius - x * x); // Top and bottom boundary of the circle
+
+        if (fabsf(waveY) <= maxY) { // Ensure the wave point is inside the circle
+            DrawPixel(ball.x + x, ball.y + waveY, WHITE); // Draw the wave pixel
+        }
+    }
+
+
+    // eyes
+    DrawCircleV(Vector2{ball.x+ ball.radius/2 - 5,ball.y - ball.radius/2},5,BLACK);
+    DrawCircleV(Vector2{ball.x- ball.radius/2 + 5,ball.y - ball.radius/2},5,BLACK);
+
+    // ears 
+
+
+    // mouth
+
+}
+
+void Vmouth()
+{
+    float vWidth = 40;
+    float vHeight = 20;
+
+    // Left point of the V (starting at the rectangle position)
+    Vector2 vLeft = {ball.x - ball.radius / 5, ball.y - ball.radius / 4};
+    
+    // Right point of the V (ending at the rectangle position)
+    Vector2 vRight = {ball.x - ball.radius / 5 + vWidth, ball.y - ball.radius / 4};
+
+    // Top point of the V (moving upwards)
+    Vector2 vTop = {ball.x, ball.y - ball.radius / 4 - vHeight};
+
+    // Draw lines to form the V shape
+    DrawLine(vLeft.x, vLeft.y, vTop.x, vTop.y, BLACK); // Left side of V
+    DrawLine(vRight.x, vRight.y, vTop.x, vTop.y, BLACK); // Right side of V
+}
+
+void initialMouth()
+{
+    DrawRectangle(ball.x - ball.radius / 5, ball.y - ball.radius / 4, 40, 10, BLACK);
+}
+
+void updateBall()
+{
+    ball.x += ball.speed_x;
+    ball.y += ball.speed_y;
+
+    if ( ball.y + ball.radius >= GetScreenHeight() || ball.y - ball.radius <= 0)
+    {
+        ball.speed_y *= -1;
+    }
+
+    if ( ball.x + ball.radius >= GetScreenWidth() || ball.x - ball.radius <= 0)
+    {
+        ball.speed_x *= -1;
+    }
+
+}
+
+
 
 void drawPaddle()
 {
@@ -93,6 +163,19 @@ void updateComp(int ball_y)
 
     computer.LimitMove();
 }
+void updateMouth()
+{
+    if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) ||
+        CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+    {
+        Vmouth(); 
+    }
+    else
+    {
+        initialMouth(); 
+    }
+}
+
 
 Vector2 v_ball = {ball.x, ball.y};
 
@@ -100,7 +183,7 @@ int main () {
 
     InitWindow(W_WIDTH,W_HEIGHT,"pong version");
 
-    ball.radius     = 20;
+    ball.radius     = 100;
     ball.x          = W_WIDTH/2;
     ball.y          = W_HEIGHT/2;
     ball.speed_x    = 1;
@@ -125,6 +208,7 @@ int main () {
         updateBall();
         updatePlayer();
         updateComp(ball.y);
+        updateMouth();
 
 // collision checking
         if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
@@ -137,6 +221,7 @@ int main () {
         {
             ball.speed_x *= -1;
         }
+        
 
         ClearBackground(BLACK);
 // draw
@@ -144,7 +229,9 @@ int main () {
         drawBall();
         drawCompPaddle();
         drawPaddle();
-        
+        bool playerCollide= CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) || CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height});
+        playerCollide? Vmouth(): initialMouth();
+
         DrawText(TextFormat("Score: %i", score), 10, 10, 20, LIGHTGRAY);
         EndDrawing();
     }
