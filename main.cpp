@@ -8,36 +8,34 @@
 
 int score = 0;
 
-struct Ball
+typedef struct 
 {
     float x, y;
     int speed_x, speed_y;
     int radius;
-} ball;
+} Ball;
 
-struct Paddle
+typedef struct 
 {
     float x,y;
     float width, height;
     int speed;
 
-    // keep player limited space (shouldnt go outside window)
-    void LimitMove()
-    {
-        if ( y <= 0)
-        {
-             y = 5;
-        }
-        if ( y + height >= GetScreenHeight())
-        {
-             y = GetScreenHeight() -  height - 5;
-        }
-    }
-} player, computer;
 
-void Vmouth();
-void initialMouth();
-void updateMouth();
+} Paddle;
+
+Ball ball;
+Paddle player, computer;
+
+void drawCompPaddle()
+{
+    DrawRectangle( computer.x, computer.y, computer.width, computer.height,WHITE);
+}
+
+void drawPaddle()
+{
+    DrawRectangle( player.x, player.y, player.width, player.height,WHITE);
+}
 
 void drawBall()
 {
@@ -81,37 +79,27 @@ void drawBall()
 
 
     // mouth
-
-}
-
-void Vmouth()
-{
-    float vWidth = 40;
-    float vHeight = 20;
-
-    // Left point of the V (starting at the rectangle position)
-    Vector2 vLeft = {ball.x - ball.radius / 5, ball.y - ball.radius / 4};
-    
-    // Right point of the V (ending at the rectangle position)
-    Vector2 vRight = {ball.x - ball.radius / 5 + vWidth, ball.y - ball.radius / 4};
-
-    // Top point of the V (moving upwards)
-    Vector2 vTop = {ball.x, ball.y - ball.radius / 4 - vHeight};
-
-    // Draw lines to form the V shape
-    DrawLine(vLeft.x, vLeft.y, vTop.x, vTop.y, BLACK); // Left side of V
-    DrawLine(vRight.x, vRight.y, vTop.x, vTop.y, BLACK); // Right side of V
-}
-
-void initialMouth()
-{
     DrawRectangle(ball.x - ball.radius / 5, ball.y - ball.radius / 4, 40, 10, BLACK);
+
+}
+void LimitMove(Paddle *p)
+{
+  if ( p->y <= 0)
+  {
+       p->y = 5;
+ }
+  if (  p->y +  p->height >= GetScreenHeight())
+  {
+           p->y = GetScreenHeight() -   p->height - 5;
+     }
 }
 
 void updateBall()
 {
-    ball.x += ball.speed_x;
-    ball.y += ball.speed_y;
+    // ball.x += ball.speed_x;
+    // ball.y += ball.speed_y;
+    ball.x += ball.speed_x * GetFrameTime() * 60;
+    ball.y += ball.speed_y * GetFrameTime() * 60;
 
     if ( ball.y + ball.radius >= GetScreenHeight() || ball.y - ball.radius <= 0)
     {
@@ -122,15 +110,21 @@ void updateBall()
     {
         ball.speed_x *= -1;
     }
+// collision check
+     if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
+      {
+        ball.speed_x *= -1;
+        score +=1;
+       }
+
+      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+      {
+          ball.speed_x *= -1;
+      }
 
 }
 
 
-
-void drawPaddle()
-{
-    DrawRectangle( player.x, player.y, player.width, player.height,WHITE);
-}
 void updatePlayer()
 {
     if (IsKeyDown(KEY_UP))
@@ -142,14 +136,9 @@ void updatePlayer()
         player.y = player.y + player.speed;
     }
 
-    player.LimitMove();
+    LimitMove(&player);
 }
 
-
-void drawCompPaddle()
-{
-    DrawRectangle( computer.x, computer.y, computer.width, computer.height,WHITE);
-}
 
 void updateComp(int ball_y)
 {
@@ -161,26 +150,19 @@ void updateComp(int ball_y)
     {
         computer.y = computer.y + computer.speed;
     }
-computer.LimitMove();
+    LimitMove(&computer);
 }
-void updateMouth()
-{
-    // Check for collisions with paddles
-    if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) 
-        && CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
-    {
-        Vmouth(); // Draw the V-shaped mouth
-    }
-    else
-    {
-        initialMouth(); // Draw the initial rectangular mouth
-    }
-}
+
 
 
 Vector2 v_ball = {ball.x, ball.y};
 
 int main () {
+
+    InitAudioDevice();
+    Sound fly = LoadSound("");
+    SetSoundVolume(fly, 1.0f);
+    SetTargetFPS(60);
 
     InitWindow(W_WIDTH,W_HEIGHT,"pong version");
 
@@ -209,20 +191,25 @@ int main () {
         updateBall();
         updatePlayer();
         updateComp(ball.y);
-        updateMouth();
 
 // collision checking
-        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
-        {
-            ball.speed_x *= -1;
-            score +=1;
-        }
+     if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
+      {
+        PlaySound(fly);
+       }
+       else
+       {
+        StopSound(fly);
+       }
 
-        if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
-        {
-            ball.speed_x *= -1;
-        }
-        
+      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+      {
+        PlaySound(fly);
+      }
+      else
+      {
+        StopSound(fly);
+      }
 
         ClearBackground(BLACK);
 // draw
@@ -230,12 +217,13 @@ int main () {
         drawBall();
         drawCompPaddle();
         drawPaddle();
-        bool playerCollide= CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}) || CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height});
-        playerCollide? Vmouth(): initialMouth();
+
 
         DrawText(TextFormat("Score: %i", score), 10, 10, 20, LIGHTGRAY);
         EndDrawing();
     }
+    UnloadSound(fly);
+    CloseAudioDevice();
 
     CloseWindow();
     return 0;
