@@ -160,7 +160,7 @@ Vector2 v_ball = {ball.x, ball.y};
 int main () {
 
     InitAudioDevice();
-    Sound fly = LoadSound("");
+    Sound fly = LoadSound("./resources/paddleCollide.wav");
     SetSoundVolume(fly, 1.0f);
     SetTargetFPS(60);
 
