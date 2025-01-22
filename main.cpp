@@ -3,6 +3,7 @@
 #include <raylib.h>
 #include <math.h>
 
+
 #define W_WIDTH 1200
 #define W_HEIGHT 600
 
@@ -25,11 +26,11 @@ typedef struct
 } Paddle;
 
 Ball ball;
-Paddle player, computer;
+Paddle player, wall;
 
 void drawCompPaddle()
 {
-    DrawRectangle( computer.x, computer.y, computer.width, computer.height,WHITE);
+    DrawRectangle( wall.x, wall.y, wall.width, wall.height,WHITE);
 }
 
 void drawPaddle()
@@ -41,7 +42,6 @@ void drawBall()
 {
     // DrawCircle(ball.x, ball.y, ball.radius,WHITE);
     DrawCircle(ball.x, ball.y, ball.radius,WHITE);
-
     
     float amplitude = 5; // Amplitude of the wave (height of the wave)
     float frequency = 8; // Frequency of the wave (tightness of the wave)
@@ -79,7 +79,7 @@ void drawBall()
 
 
     // mouth
-    DrawRectangle(ball.x - ball.radius / 5, ball.y - ball.radius / 4, 40, 10, BLACK);
+    DrawRectangle(ball.x - ball.radius / 3, (ball.y - ball.radius / 4)-2, 30, 7, BLACK);
 
 }
 void LimitMove(Paddle *p)
@@ -96,10 +96,10 @@ void LimitMove(Paddle *p)
 
 void updateBall()
 {
-    // ball.x += ball.speed_x;
-    // ball.y += ball.speed_y;
-    ball.x += ball.speed_x * GetFrameTime() * 60;
-    ball.y += ball.speed_y * GetFrameTime() * 60;
+    ball.x += ball.speed_x;
+    ball.y += ball.speed_y;
+    // ball.x += ball.speed_x * GetFrameTime() * 60;
+    // ball.y += ball.speed_y * GetFrameTime() * 60;
 
     if ( ball.y + ball.radius >= GetScreenHeight() || ball.y - ball.radius <= 0)
     {
@@ -117,7 +117,7 @@ void updateBall()
         score +=1;
        }
 
-      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{wall.x, wall.y, wall.width, wall.height}))
       {
           ball.speed_x *= -1;
       }
@@ -140,22 +140,21 @@ void updatePlayer()
 }
 
 
-void updateComp(int ball_y)
-{
-    if (computer.y + computer.height/2 > ball_y)
-    {
-        computer.y = computer.y - computer.speed;
-    }
-    if (computer.y + computer.height/2 <= ball_y)
-    {
-        computer.y = computer.y + computer.speed;
-    }
-    LimitMove(&computer);
-}
+// void updateComp(int ball_y)
+// {
+//     if (computer.y + computer.height/2 > ball_y)
+//     {
+//         computer.y = computer.y - computer.speed;
+//     }
+//     if (computer.y + computer.height/2 <= ball_y)
+//     {
+//         computer.y = computer.y + computer.speed;
+//     }
+//     LimitMove(&computer);
+// }
 
 
 
-Vector2 v_ball = {ball.x, ball.y};
 
 int main () {
 
@@ -166,7 +165,7 @@ int main () {
 
     InitWindow(W_WIDTH,W_HEIGHT,"pong version");
 
-    ball.radius     = 100;
+    ball.radius     = 40;
     ball.x          = W_WIDTH/2;
     ball.y          = W_HEIGHT/2;
     ball.speed_x    = 1;
@@ -178,11 +177,11 @@ int main () {
     player.y        = W_HEIGHT/2 - player.height/2;
     player.speed    = 6;
 
-    computer.height = 120;
-    computer.width  = 25;
-    computer.x      = 10;
-    computer.y      = W_HEIGHT/2 - computer.height/2;
-    computer.speed  = 6;
+    wall.height = W_HEIGHT;
+    wall.width  = 25;
+    wall.x      = 0; 
+    wall.y      = W_HEIGHT/2 - wall.height/2;
+    wall.speed  = 0;//because its not moving now
 
     while(!WindowShouldClose())
     {
@@ -190,7 +189,7 @@ int main () {
 // update
         updateBall();
         updatePlayer();
-        updateComp(ball.y);
+        // updateComp(ball.y);
 
 // collision checking
      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
@@ -202,7 +201,7 @@ int main () {
         StopSound(fly);
        }
 
-      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{computer.x, computer.y, computer.width, computer.height}))
+      if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{wall.x, wall.y, wall.width, wall.height}))
       {
         PlaySound(fly);
       }
