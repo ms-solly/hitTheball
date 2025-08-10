@@ -63,14 +63,6 @@ A simple pong-style game implemented in C-style C++ using **[Raylib](https://git
 - Keep the ball (character) in play as long as possible.
 - (Add specific controls or scoring details here.)
 
-## Example
-
-```cpp
-// Example snippet from the game
-int main() {
-    // Game loop and logic here
-}
-```
 
 ## Contributing
 
